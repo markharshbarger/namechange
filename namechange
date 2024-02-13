@@ -1,0 +1,58 @@
+#!/bin/bash
+
+## Create a function called printHelp. printHelp should output the following:
+## Usage: namechange -f find -r replace "string to modify"
+## -f The text to find in the filename
+## -r The replacement text for the new filename
+
+printHelp() {
+	echo "Usage: namechange -f find -r replace \"string to modify"\"
+	echo "-f The text to find in the filename"
+	echo "-r The replacement text for the new filename"
+}
+
+## Use getopts to read in options and save arguments that correlate with options. getopts should support the following options in the OPTSTRING
+##  -h call printHelp function and exit script
+##  -f option followed by argument specifying pattern to find in the filename
+##  -r option followed by argument specifying what to replace the found pattern with in the filename
+##  \? use as case when option is not part of OPTSTRING
+##     call printHelp and exit script
+
+while getopts ":hf:r:" opt; do
+	case $opt in
+	h)
+		printHelp
+		exit
+		;;
+	f)
+		patternToFind="$OPTARG"
+		;;
+	r)
+		patternToReplace="$OPTARG"
+		;;
+	\?)
+		echo "Invalid option: -$OPTARG" >&2
+		printHelp
+		exit 1
+		;;
+	esac
+done
+
+## If no filename was provided OR if filename does not exist:
+##  Output User must provide valid filename
+##  Call the printHelp function
+shift $((OPTIND-1))
+
+filename="$1"
+if [[ -z "$filename" || ! -e "$filename" ]]; then
+	echo "Error: User must provide valid filename"
+	printHelp
+	exit 1
+fi
+
+## Using argument in field filename, find the pattern to be replaced and replace it with the pattern requested using sed
+## Hint: you may just want to have sed use the -E option
+newFilename=`echo "$filename" | sed -E "s|$patternToFind|$patternToReplace|g"`
+`mv "$filename" "$newFilename"`
+
+echo "Renamed $filename to $newFilename"
